@@ -49,7 +49,33 @@ sequenceDiagram
 
 Tee kaavio tilanteesta, jossa käyttäjä menee selaimella osoitteeseen https://studies.cs.helsinki.fi/exampleapp/spa eli muistiinpanojen Single Page App-versioon
 
+```mermaid
 
+sequenceDiagram
+    participant browser
+    participant server
+
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/spa
+activate server
+server-->>browser: HTML Document
+deactivate server
+
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.css
+activate server
+server-->>browser: CSS File
+deactivate server
+
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/spa.js
+activate server
+server-->>browser: JavaScript File
+deactivate server
+
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
+activate server
+server-->>browser: [{ "content": "HTML is easy", "date": "2023-1-1" }, ... ]
+deactivate server
+
+```
 
 ## Tehtävä 0.6:
 
