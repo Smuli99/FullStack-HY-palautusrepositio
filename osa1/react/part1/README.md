@@ -1,4 +1,4 @@
-# Reactin alkeet
+# Reactin alkeet ja JavaScriptia
 
 ## Tehtävä 1.1
 
@@ -184,6 +184,303 @@ const App = () => {
         part3={part3} exercise3={exercises3}
       />
       <Total content={totalContent} exercises={totalExercises} />
+    </div>
+  );
+};
+```
+
+## Tehtävä 1.3
+
+
+Siirrytään käyttämään sovelluksessamme olioita. Muuta komponentin App muuttujamäärittelyt seuraavaan muotoon ja muuta sovelluksen kaikkia osia niin, että sovellus edelleen toimii:
+```
+const App = () => {
+  const course = 'Half Stack application development'
+  const part1 = {
+    name: 'Fundamentals of React',
+    exercises: 10
+  }
+  const part2 = {
+    name: 'Using props to pass data',
+    exercises: 7
+  }
+  const part3 = {
+    name: 'State of a component',
+    exercises: 14
+  }
+
+
+  return (
+    <div>
+      ...
+    </div>
+  )
+}
+```
+
+## Vastaus 1.3
+
+App.jsx
+```
+const Header = (props) => {
+  return (
+    <h1>{props.course}</h1>
+  );
+};
+
+const Part = (props) => {
+  console.log(props);
+  return (
+    <p>{props.part.name} {props.part.exercises}</p>
+  );
+};
+
+const Content = (props) => {
+  console.log(props);
+  return (
+    <div>
+      <Part part={props.part1} />
+      <Part part={props.part2} />
+      <Part part={props.part3} />
+    </div>
+  );
+};
+
+const Total = (props) => {
+  return (
+    <p>{props.part.name} {props.part.exercises}</p>
+  );
+};
+
+const App = () => {
+  const course = 'Half Stack application development';
+  const part1 = {
+    name: 'Fundamentals of React',
+    exercises: 10
+  };
+
+  const part2 = {
+    name: 'Using props to pass data',
+    exercises: 7
+  };
+
+  const part3 = {
+    name: 'State of a component',
+    exercises: 14
+  };
+
+  const total = {
+    name: 'Number of exercises',
+    exercises: part1.exercises + part2.exercises + part3.exercises
+  };
+
+  return (
+    <div>
+      <Header course={course} />
+      <Content
+        part1={part1} part2={part2} part3={part3}
+      />
+      <Total part={total} />
+    </div>
+  );
+};
+```
+
+## Tehtävä 1.4
+
+Seuraavaksi laitetaan oliot taulukkoon, eli muuta App :in muuttujamäärittelyt seuraavaan muotoon ja muuta sovelluksen kaikki osat vastaavasti:
+```
+const App = () => {
+  const course = 'Half Stack application development'
+  const parts = [
+    {
+      name: 'Fundamentals of React',
+      exercises: 10
+    },
+    {
+      name: 'Using props to pass data',
+      exercises: 7
+    },
+    {
+      name: 'State of a component',
+      exercises: 14
+    }
+  ]
+
+  return (
+    <div>
+      ...
+    </div>
+  )
+}
+```
+Älä kuitenkaan välitä eri olioita komponentista App sen sisältämiin komponentteihin Content ja Total erillisinä propseina, vaan suoraan taulukkona:
+```
+const App = () => {
+  // const-määrittelyt
+
+  return (
+    <div>
+      <Header course={...} />
+      <Content parts={parts} />
+      <Total parts={parts} />
+    </div>
+  )
+}
+```
+
+## Vastaus 1.4
+
+App.jsx
+```
+const Header = (props) => {
+  return (
+    <h1>{props.course}</h1>
+  );
+};
+
+const Part = (props) => {
+  return (
+    <p>{props.part.name} {props.part.exercises}</p>
+  );
+};
+
+const Content = (props) => {
+  return (
+    <div>
+      <Part part={props.parts[0]} />
+      <Part part={props.parts[1]} />
+      <Part part={props.parts[2]} />
+    </div>
+  );
+};
+
+const Total = (props) => {
+  const name = 'Number of exercises';
+  const total = props.parts.map(part => part.exercises).reduce((sum, current) => sum + current, 0);
+
+  return (
+    <p>{name} {total}</p>
+  );
+};
+
+const App = () => {
+  const course = 'Half Stack application development';
+  const parts = [
+    {
+      name: 'Fundamentals of React',
+      exercises: 10
+    },
+    {
+      name: 'Using props to pass data',
+      exercises: 7
+    },
+    {
+      name: 'State of a component',
+      exercises: 14
+    }
+  ];
+
+  return (
+    <div>
+      <Header course={course} />
+      <Content parts={parts} />
+      <Total parts={parts} />
+    </div>
+  );
+};
+```
+
+## Tehtävä 1.5
+
+Viedään muutos vielä yhtä askelta pidemmälle, eli tehdään kurssista ja sen osista yksi JavaScript-olio. Korjaa kaikki mikä menee rikki.
+```
+const App = () => {
+  const course = {
+    name: 'Half Stack application development',
+    parts: [
+      {
+        name: 'Fundamentals of React',
+        exercises: 10
+      },
+      {
+        name: 'Using props to pass data',
+        exercises: 7
+      },
+      {
+        name: 'State of a component',
+        exercises: 14
+      }
+    ]
+  }
+
+  return (
+    <div>
+      ...
+    </div>
+  )
+}
+```
+
+## Vastaus 1.5
+
+App.jsx
+```
+const Header = (props) => {
+  return (
+    <h1>{props.course.name}</h1>
+  );
+};
+
+const Part = (props) => {
+  return (
+    <p>{props.part.name} {props.part.exercises}</p>
+  );
+};
+
+const Content = (props) => {
+  return (
+    <div>
+      <Part part={props.part[0]} />
+      <Part part={props.part[1]} />
+      <Part part={props.part[2]} />
+    </div>
+  );
+};
+
+const Total = (props) => {
+  const name = 'Number of exercises';
+  const total = props.part.reduce((sum, part) => sum + part.exercises, 0);
+
+  return (
+    <p>{name} {total}</p>
+  );
+};
+
+const App = () => {
+  const course = {
+    name: 'Half Stack application development',
+    parts: [
+      {
+        name: 'Fundamentals of React',
+        exercises: 10
+      },
+      {
+        name: 'Using props to pass data',
+        exercises: 7
+      },
+      {
+        name: 'State of a component',
+        exercises: 14
+      }
+    ]
+  };
+
+  return (
+    <div>
+      <Header course={course} />
+      <Content part={course.parts} />
+      <Total part={course.parts} />
     </div>
   );
 };
