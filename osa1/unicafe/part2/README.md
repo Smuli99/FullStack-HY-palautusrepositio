@@ -1,12 +1,76 @@
-# React + Vite
+# Unicafe
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Tehtävien 1.6 - 1.11 vastaus
 
-Currently, two official plugins are available:
+Tämä on kokonaisuudessa 1.11 vastaus muut jätetty pois ja näkyvät commiteista.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+main.jsx
+```
+import ReactDOM from 'react-dom/client';
+import App from './App';
 
-## Expanding the ESLint configuration
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+```
+App.jsx
+```
+import { useState } from 'react';
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+const Header = ({ text }) => <h1>{text}</h1>;
+
+const Button = ({ onClick, text }) => <button onClick={onClick}>{text}</button>;
+
+const StatisticsLine = ({ text, value }) => {
+  return (
+    <tr>
+      <td>{text} {value}</td>
+    </tr>  
+  );
+};
+
+const Statistics = ({ good, neutral, bad }) => {
+  const total = good + neutral + bad;
+  
+  if (total === 0) {
+    return <p>No feedback given</p>;
+  }
+
+  const average = total === 0 ? 0 : (good - bad) / total; // return 0 if total is 0 else calculate average
+  const positive = total === 0 ? 0 : (good / total) * 100; // return 0 if total is 0 else calculate positive percentage
+  
+  return (
+    <table>
+      <tbody>
+        <StatisticsLine text="Good" value={good} />
+        <StatisticsLine text="Neutral" value={neutral} />
+        <StatisticsLine text="Bad" value={bad} />
+        <StatisticsLine text="All" value={total} />
+        <StatisticsLine text="Average" value={average} />
+        <StatisticsLine text="Positive" value={`${positive} %`} />
+      </tbody>
+    </table>
+  );
+};
+
+const App = () => {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
+
+  const handleGood = () => setGood(good + 1);
+  const handleNeutral = () => setNeutral(neutral + 1);
+  const handleBad = () => setBad(bad + 1);
+
+  return (
+    <div>
+      <Header text="Give Feedback" />
+      <Button onClick={handleGood} text="Good" />
+      <Button onClick={handleNeutral} text="Neutral" />
+      <Button onClick={handleBad} text="Bad" />
+      <Header text="Statistics" />
+      <Statistics good={good} neutral={neutral} bad={bad} />
+    </div>
+  )
+};
+
+export default App
+```
