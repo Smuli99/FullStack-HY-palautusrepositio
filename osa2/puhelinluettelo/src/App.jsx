@@ -2,6 +2,30 @@ import { useState } from 'react';
 
 const Header = ({ text }) => <h1>{text}</h1>;
 
+const Persons = ({ persons, filter }) => {
+  const filteredPersons = persons.filter(person => 
+    person.name.toLowerCase().includes(filter.trim().toLowerCase())
+  );
+  
+  return (
+    <ul>
+      {filteredPersons.map(person =>
+        <li key={person.name}>
+          {person.name} {person.number || '-no number-'}
+        </li>
+      )}
+    </ul>
+  );
+};
+
+const Filter = ({ filter, handleFilter }) => {
+  return (
+    <div>
+      filter shown with <input value={filter} onChange={handleFilter} />
+    </div>
+  );
+};
+
 const NewPersonForm = ({ addName, newName, handleNewName, newNumber, handleNewNumber }) => {
   return (
     <form onSubmit={addName}>
@@ -16,27 +40,16 @@ const NewPersonForm = ({ addName, newName, handleNewName, newNumber, handleNewNu
   );
 };
 
-const Persons = ({ persons }) => {
-  return (
-    <ul>
-      {persons.map(person =>
-        <li key={person.name}>
-          {person.name} {person.number || '-no number-'}
-        </li>
-      )}
-    </ul>
-  );
-};
-
 const App = () => {
   const [persons, setPersons] = useState([
-    {
-      name: 'Arto Hellas',
-      number: '040-123456'
-    }
+    { name: 'Arto Hellas',number: '040-123456' },
+    { name: 'Ada Lovelace', number: '39-44-5323523' },
+    { name: 'Dan Abramov', number: '12-43-234345' },
+    { name: 'Mary Poppendieck', number: '39-23-6425922' }
   ]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
+  const [filter, setFilter] = useState('');
 
   const addName = (event) => {
     event.preventDefault();
@@ -62,6 +75,8 @@ const App = () => {
   return (
     <div>
       <Header text="Phonebook" />
+      <Filter filter={filter} handleFilter={(e) => setFilter(e.target.value)} />
+      <Header text="Add a new" />
       <NewPersonForm 
         addName={addName}
         newName={newName}
@@ -70,7 +85,7 @@ const App = () => {
         handleNewNumber={(e) => setNewNumber(e.target.value)}
       />
       <Header text="Numbers" />
-      <Persons persons={persons} />
+      <Persons persons={persons} filter={filter} />
     </div>
   );
 };
