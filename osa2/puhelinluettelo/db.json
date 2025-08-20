@@ -1,19 +1,14 @@
 {
   "persons": [
     {
-      "name": "Ada Lovelace",
-      "number": "0504133343",
-      "id": "2"
-    },
-    {
-      "id": "9348",
-      "name": "Samu Hytönen",
-      "number": "050413343"
-    },
-    {
       "id": "959e",
       "name": "Arto Hellas",
       "number": "044234583"
+    },
+    {
+      "id": "e461",
+      "name": "Uusi",
+      "number": ""
     }
   ]
 }

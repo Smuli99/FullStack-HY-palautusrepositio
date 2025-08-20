@@ -12,7 +12,7 @@ const Persons = ({ persons, filter, deleteName }) => {
   return (
     <ul>
       {filteredPersons.map(person =>
-        <li key={person.name}>
+        <li key={person.id}>
           {person.name} {person.number || '-no number-'}
           <button onClick={() => deleteName(person.id)}>delete</button>
         </li>
@@ -53,8 +53,8 @@ const App = () => {
   useEffect(() =>{
     numberService
       .getAll()
-      .then(inititalPersons => {
-        setPersons(inititalPersons);
+      .then(initialPersons => {
+        setPersons(initialPersons);
       })
   }, []);
 
@@ -76,13 +76,16 @@ const App = () => {
           .then(returnedPerson => {
             setPersons(persons.map(person =>
               person.id !== personToUpdate.id ? person : returnedPerson
-            ))
+            ));
+            showMessage(`Updated ${updatedPerson.name}`);
+          })
+          .catch(error => {
+            showMessage(`Error: Information of ${personToUpdate.name} has already been removed from server`, 5000);
+            setPersons(persons.filter(person =>
+              person.id !== personToUpdate.id
+            ));
+            console.log(error);
           });
-
-        setMessage(`Updated ${updatedPerson.name}`);
-        setTimeout(() => {
-          setMessage(null);
-        }, 2000);
       }
     } else {
       const personObject = {
@@ -94,12 +97,8 @@ const App = () => {
         .create(personObject)
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson));
+          showMessage(`Added ${newName}`);
         });
-
-      setMessage(`Added ${newName}`);
-      setTimeout(() => {
-        setMessage(null);
-      }, 2000);
     }
     
     setNewName('');
@@ -116,22 +115,22 @@ const App = () => {
           setPersons(persons.filter(person =>
             person.id !== id
           ));
+          showMessage(`Deleted ${person.name}`);
         })
         .catch(error => {
-          setMessage(`Error: Person '${person.name}' was already removed from server`);
+          showMessage(`Error: Person '${person.name}' was already removed from server`, 5000);
           setPersons(persons.filter(p => p.id !== id));
           console.log(`Error removing person: ${person.name}`, error);
-          setTimeout(() => {
-            setMessage(null);
-          }, 5000);
         });
-
-      setMessage(`Deleted ${person.name}`);
-      setTimeout(() => {
-        setMessage(null);
-      }, 2000);
     }
   }
+
+  const showMessage = (text, duration = 2000) => {
+    setMessage(text);
+    setTimeout(() => {
+      setMessage(null);
+    }, duration);
+  };
 
   return (
     <div>
