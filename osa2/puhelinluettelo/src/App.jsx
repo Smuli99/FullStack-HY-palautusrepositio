@@ -59,15 +59,28 @@ const App = () => {
   const addName = (event) => {
     event.preventDefault();
     const exists = persons.some(person => 
-      person.name.toLowerCase() === newName.toLowerCase()
+      person.name.trim().toLowerCase() === newName.trim().toLowerCase()
     );
 
     if (exists) {
-      alert(`${newName} is already added to phonebook`);
+      if (window.confirm(`${newName} is already added to phonebook, replace the old number with new one?`)) {
+        const personToUpdate = persons.find(person =>
+          person.name.trim().toLowerCase() === newName.trim().toLowerCase()
+        );
+        const updatedPerson = { ...personToUpdate, number: newNumber.trim() };
+
+        numberService
+          .update(personToUpdate.id, updatedPerson)
+          .then(returnedPerson => {
+            setPersons(persons.map(person =>
+              person.id !== personToUpdate.id ? person : returnedPerson
+            ))
+          });
+      }
     } else {
       const personObject = {
         name: newName,
-        number: newNumber.trim() === '' ? '' : newNumber
+        number: newNumber.trim()
       };
       
       numberService
