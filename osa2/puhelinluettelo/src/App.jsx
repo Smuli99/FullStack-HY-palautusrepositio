@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import numberService from './services/numbers';
+import Message from './components/Message';
 
 const Header = ({ text }) => <h1>{text}</h1>;
 
@@ -47,6 +48,7 @@ const App = () => {
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [filter, setFilter] = useState('');
+  const [message, setMessage] = useState(null);
 
   useEffect(() =>{
     numberService
@@ -76,6 +78,11 @@ const App = () => {
               person.id !== personToUpdate.id ? person : returnedPerson
             ))
           });
+
+        setMessage(`Updated ${updatedPerson.name}`);
+        setTimeout(() => {
+          setMessage(null);
+        }, 2000);
       }
     } else {
       const personObject = {
@@ -88,6 +95,11 @@ const App = () => {
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson));
         });
+
+      setMessage(`Added ${newName}`);
+      setTimeout(() => {
+        setMessage(null);
+      }, 2000);
     }
     
     setNewName('');
@@ -106,16 +118,25 @@ const App = () => {
           ));
         })
         .catch(error => {
-          alert(`Person '${person.name}' was already removed from server`);
+          setMessage(`Error: Person '${person.name}' was already removed from server`);
           setPersons(persons.filter(p => p.id !== id));
-          console.error(`Error removing person: ${person.name}`, error);
+          console.log(`Error removing person: ${person.name}`, error);
+          setTimeout(() => {
+            setMessage(null);
+          }, 5000);
         });
+
+      setMessage(`Deleted ${person.name}`);
+      setTimeout(() => {
+        setMessage(null);
+      }, 2000);
     }
   }
 
   return (
     <div>
       <Header text="Phonebook" />
+      <Message message={message} />
       <Filter filter={filter} handleFilter={(e) => setFilter(e.target.value)} />
       <Header text="Add a new" />
       <NewPersonForm 
