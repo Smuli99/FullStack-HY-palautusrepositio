@@ -53,7 +53,7 @@ const App = () => {
       .then(response => {
         setPersons(response.data);
       })
-  }, [])
+  }, []);
 
   const addName = (event) => {
     event.preventDefault();
@@ -69,7 +69,11 @@ const App = () => {
         number: newNumber.trim() === '' ? '' : newNumber
       };
       
-      setPersons(persons.concat(personObject));
+      axios
+        .post('http://localhost:3001/persons', personObject)
+        .then(response => {
+          setPersons(persons.concat(response.data));
+        });
     }
     
     setNewName('');
