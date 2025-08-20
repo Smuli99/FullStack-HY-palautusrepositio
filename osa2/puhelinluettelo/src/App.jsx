@@ -3,7 +3,7 @@ import numberService from './services/numbers';
 
 const Header = ({ text }) => <h1>{text}</h1>;
 
-const Persons = ({ persons, filter }) => {
+const Persons = ({ persons, filter, deleteName }) => {
   const filteredPersons = persons.filter(person => 
     person.name.toLowerCase().includes(filter.trim().toLowerCase())
   );
@@ -13,6 +13,7 @@ const Persons = ({ persons, filter }) => {
       {filteredPersons.map(person =>
         <li key={person.name}>
           {person.name} {person.number || '-no number-'}
+          <button onClick={() => deleteName(person.id)}>delete</button>
         </li>
       )}
     </ul>
@@ -80,6 +81,25 @@ const App = () => {
     setNewNumber('');
   }
 
+  const deleteName = (id) => {
+    const person = persons.find(p => p.id === id);
+
+    if (window.confirm(`Delete ${person.name} ?`)) {
+      numberService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter(person =>
+            person.id !== id
+          ));
+        })
+        .catch(error => {
+          alert(`Person '${person.name}' was already removed from server`);
+          setPersons(persons.filter(p => p.id !== id));
+          console.error(`Error removing person: ${person.name}`, error);
+        });
+    }
+  }
+
   return (
     <div>
       <Header text="Phonebook" />
@@ -93,7 +113,7 @@ const App = () => {
         handleNewNumber={(e) => setNewNumber(e.target.value)}
       />
       <Header text="Numbers" />
-      <Persons persons={persons} filter={filter} />
+      <Persons persons={persons} filter={filter} deleteName={deleteName} />
     </div>
   );
 };
