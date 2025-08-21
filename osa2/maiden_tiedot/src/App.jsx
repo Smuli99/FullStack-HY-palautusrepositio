@@ -32,12 +32,13 @@ const Flag = ({ alt, png }) => {
   );
 };
 
-const CountryList = ({ countries }) => {
+const CountryList = ({ countries, selectedCountry }) => {
   return (
     <div>
       {countries.map(country =>
         <div key={country.cca3}>
           {country.name.common}
+          <button onClick={() => selectedCountry(country)}>Show</button>
         </div>
       )}
     </div>
@@ -61,10 +62,12 @@ const Country = ({ country }) => {
 const App = () => {
   const [value, setValue] = useState('');
   const [countries, setCountries] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState(null);
 
   useEffect(() => {
     if (value.trim() === '') {
       setCountries([]);
+      setSelectedCountry(null);
       return;
     }
     
@@ -75,8 +78,13 @@ const App = () => {
           country.name.common.toLowerCase().includes(value.toLowerCase())
         );
         setCountries(filteredCountries);
+        if (filteredCountries.length === 1) setSelectedCountry(null);
       });
   }, [value]);
+
+  const selectedCountryHandler = (countryObject) => {
+    setSelectedCountry(countryObject);
+  };
 
   const handleChange = (event) => setValue(event.target.value);
 
@@ -89,12 +97,16 @@ const App = () => {
       )}
 
       {countries.length > 1 && countries.length <= 10 && (
-        <CountryList countries={countries} />
+        <CountryList countries={countries} selectedCountry={selectedCountryHandler} />
       )}
 
-      {countries.length === 1 && (
+      {countries.length === 1 && !selectedCountry && (
         <Country country={countries[0]} />
-      )}  
+      )}
+
+      {selectedCountry && (
+        <Country country={selectedCountry} />
+      )}
     </div>
   );
 };
