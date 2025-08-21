@@ -32,6 +32,41 @@ const Flag = ({ alt, png }) => {
   );
 };
 
+const Weather = ({ capital }) => {
+  const [weather, setWeather] = useState(null);
+  
+  useEffect(() => {
+    if (!capital) return;
+    
+    const api_key = import.meta.env.VITE_SOME_KEY;
+    const url = 
+    `https://api.openweathermap.org/data/2.5/weather?q=${capital}&units=metric&appid=${api_key}`;
+    
+    axios
+      .get(url)
+      .then(response => {
+        setWeather(response.data);
+      })
+      .catch(error => {
+        console.log('Error:', error);
+      });
+  }, [capital]);
+
+  if (!weather) return <p>Loading weather information...</p>;
+
+  return (
+    <div>
+      <h2>Weather in {capital}</h2>
+      <p>Tempature: {weather.main.temp} Celcius</p>
+      <img 
+        src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+        alt={weather.weather[0].description}
+      />
+      <p>Wind: {weather.wind.speed} m/s</p>
+    </div>
+  );
+};
+
 const CountryList = ({ countries, selectedCountry }) => {
   return (
     <div>
@@ -55,6 +90,7 @@ const Country = ({ country }) => {
       />
       <Languages languages={country.languages} />
       <Flag alt={country.flags.alt} png={country.flags.png} />
+      <Weather capital={country.capital[0]} />
     </div>
   );
 };
