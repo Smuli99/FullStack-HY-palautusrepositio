@@ -16,14 +16,15 @@ morgan.token('body', (request) => {
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
     Person.find({})
         .then(persons => {
             response.json(persons);
-        });
+        })
+        .catch(error => next(error));
 });
 
-app.get('/info', (request, response) => {
+app.get('/info', (request, response, next) => {
     Person.countDocuments({})
         .then(count => {
             const date = new Date();
@@ -31,10 +32,11 @@ app.get('/info', (request, response) => {
                 <p>Phonebook has info for ${count} people</p>
                 <p>${date}</p>
             `);
-        });
+        })
+        .catch(error => next(error));
 });
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
     const id = request.params.id;
     
     Person.findById(id)
@@ -42,13 +44,11 @@ app.get('/api/persons/:id', (request, response) => {
             if (person) response.json(person);
             else response.status(404).end();
         })
-        .catch(error => {
-            console.log('error finding person:', error);
-        });
+        .catch(error => next(error));
 });
 
 // TODO:
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
     const id = request.params.id;
     
     Person.findByIdAndDelete(id)
@@ -56,9 +56,7 @@ app.delete('/api/persons/:id', (request, response) => {
             console.log('Deleted', id);
             response.status(204).end();
         })
-        .catch(error => {
-            console.log(error);
-        });
+        .catch(error => next(error));
 });
 
 // TODO:
@@ -68,7 +66,7 @@ const dublicateName = (name) => {
     );  
 };
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body;
 
     if (!body.name || !body.number) {
@@ -96,8 +94,21 @@ app.post('/api/persons', (request, response) => {
     person.save().then(savedNote => {
         response.json(savedNote);
         console.log('Added', person);
-    });
+    })
+    .catch(error => next(error));
 });
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error);
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' });
+    }
+
+    next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
