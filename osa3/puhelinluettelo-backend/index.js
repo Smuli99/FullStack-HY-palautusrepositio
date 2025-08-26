@@ -85,7 +85,7 @@ app.post('/api/persons', (request, response, next) => {
 app.put('/api/persons/:id', (request, response, next) => {
     const { name, number } = request.body;
     
-    Person.findById(request.body.id)
+    Person.findById(request.params.id)
         .then(person => {
             if (!person) response.status(404).end();
 
