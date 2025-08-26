@@ -26,15 +26,3 @@ Note.find({}).then(result => {
     })
     mongoose.connection.close();
 });
-
-/*
-const note = new Note({
-    content: 'Mongoose is bad',
-    important: false,
-});
-
-note.save().then(result => {
-    console.log('note saved!');
-    mongoose.connection.close();
-});
-*/
