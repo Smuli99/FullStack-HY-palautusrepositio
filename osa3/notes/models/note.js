@@ -10,7 +10,7 @@ mongoose.connect(url)
         console.log('connected to MongoDB');
     })
     .catch((error) => {
-        console.log('error connectiong to MongoDB:', error.message);
+        console.log('error connecting to MongoDB:', error.message);
     });
 
 const noteSchema = new mongoose.Schema({
