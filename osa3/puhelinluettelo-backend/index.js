@@ -59,13 +59,6 @@ app.delete('/api/persons/:id', (request, response, next) => {
         .catch(error => next(error));
 });
 
-// TODO:
-const dublicateName = (name) => {
-    return persons.some(p => 
-        p.name.toLowerCase() === name.trim().toLowerCase()
-    );  
-};
-
 app.post('/api/persons', (request, response, next) => {
     const body = request.body;
 
@@ -77,15 +70,6 @@ app.post('/api/persons', (request, response, next) => {
 
     const name = body.name.trim();
 
-    // TODO:
-    /*
-    if (dublicateName(name)) {
-        return response.status(409).json({
-            error: 'name must be unique'
-        });
-    }
-    */
-
     const person = new Person({
         name: name,
         number: body.number,
@@ -96,6 +80,24 @@ app.post('/api/persons', (request, response, next) => {
         console.log('Added', person);
     })
     .catch(error => next(error));
+});
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const { name, number } = request.body;
+    
+    Person.findById(request.body.id)
+        .then(person => {
+            if (!person) response.status(404).end();
+
+            person.number = number.trim();
+
+            return person.save()
+                .then(updatedPerson => {
+                    console.log('Updated', updatedPerson);
+                    response.json(updatedPerson);
+                });
+        })
+        .catch(error => next(error));
 });
 
 const errorHandler = (error, request, response, next) => {
