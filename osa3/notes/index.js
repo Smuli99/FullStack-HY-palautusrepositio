@@ -27,22 +27,26 @@ app.get('/api/notes', (request, response) => {
     });
 });
 
-app.get('/api/notes/:id', (request, response) => {
+app.get('/api/notes/:id', (request, response, next) => {
     const id = request.params.id;
     
     Note.findById(id)
         .then(note => {
             if (note) response.json(note);
             else response.status(404).end();
-        });
+        })
+        .catch(error => next(error));
 });
 
-app.delete('/api/notes/:id', (request, response) => {
+app.delete('/api/notes/:id', (request, response, next) => {
     const id = request.params.id;
-    console.log(request.params);
-    notes = notes.filter(note => note.id !== id);
-
-    response.status(204).end();
+    
+    Note.findByIdAndDelete(id)
+        .then(result => {
+            console.log('Deleted', id);
+            response.status(204).end();
+        })
+        .catch(error => next(error));
 });
 
 app.post('/api/notes', (request, response) => {
@@ -64,11 +68,43 @@ app.post('/api/notes', (request, response) => {
     });
 });
 
+app.put('/api/notes/:id', (request, response, next) => {
+    const { content, important } = request.body;
+    console.log('Request body:', request.body);
+    console.log('Content:', content);
+    console.log('Important:', important);
+
+    Note.findById(request.body.id)
+        .then(note => {
+            if (!note) return response.status(404).end();
+
+            note.content = content;
+            note.important = important;
+
+            return note.save().then(updatedNote => {
+                response.json(updatedNote);
+            });
+        })
+        .catch(error => next(error));
+});
+
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' });
 };
 
 app.use(unknownEndpoint);
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message);
+
+    if (error.name === 'CastError') {
+        return response.status(400).sen({ error: 'malformatted id' });
+    }
+
+    next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
