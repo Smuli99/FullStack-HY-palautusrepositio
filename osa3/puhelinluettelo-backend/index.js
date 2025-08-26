@@ -50,10 +50,15 @@ app.get('/api/persons/:id', (request, response) => {
 // TODO:
 app.delete('/api/persons/:id', (request, response) => {
     const id = request.params.id;
-    console.log(request.params);
-    persons = persons.filter(p => p.id !== id);
-
-    response.status(204).end();
+    
+    Person.findByIdAndDelete(id)
+        .then(result => {
+            console.log('Deleted', id);
+            response.status(204).end();
+        })
+        .catch(error => {
+            console.log(error);
+        });
 });
 
 // TODO:
