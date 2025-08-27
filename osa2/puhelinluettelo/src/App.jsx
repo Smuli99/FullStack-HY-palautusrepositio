@@ -98,6 +98,10 @@ const App = () => {
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson));
           showMessage(`Added ${newName}`);
+        })
+        .catch(error => {
+          showMessage(`Error: ${error.response.data.error}`);
+          console.log(error.message);
         });
     }
     
