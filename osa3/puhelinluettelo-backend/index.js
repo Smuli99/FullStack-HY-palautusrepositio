@@ -38,7 +38,7 @@ app.get('/info', (request, response, next) => {
 
 app.get('/api/persons/:id', (request, response, next) => {
     const id = request.params.id;
-    
+
     Person.findById(id)
         .then(person => {
             if (person) response.json(person);
@@ -50,9 +50,9 @@ app.get('/api/persons/:id', (request, response, next) => {
 // TODO:
 app.delete('/api/persons/:id', (request, response, next) => {
     const id = request.params.id;
-    
+
     Person.findByIdAndDelete(id)
-        .then(result => {
+        .then(() => {
             console.log('Deleted', id);
             response.status(204).end();
         })
@@ -79,12 +79,12 @@ app.post('/api/persons', (request, response, next) => {
         response.json(savedNote);
         console.log('Added', person);
     })
-    .catch(error => next(error));
+        .catch(error => next(error));
 });
 
 app.put('/api/persons/:id', (request, response, next) => {
-    const { name, number } = request.body;
-    
+    const number = request.body.number;
+
     Person.findById(request.params.id)
         .then(person => {
             if (!person) response.status(404).end();
