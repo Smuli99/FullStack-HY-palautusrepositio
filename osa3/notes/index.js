@@ -29,7 +29,6 @@ app.get('/api/notes', (request, response) => {
 
 app.get('/api/notes/:id', (request, response, next) => {
     const id = request.params.id;
-    
     Note.findById(id)
         .then(note => {
             if (note) response.json(note);
@@ -40,9 +39,8 @@ app.get('/api/notes/:id', (request, response, next) => {
 
 app.delete('/api/notes/:id', (request, response, next) => {
     const id = request.params.id;
-    
     Note.findByIdAndDelete(id)
-        .then(result => {
+        .then(() => {
             console.log('Deleted', id);
             response.status(204).end();
         })
@@ -63,10 +61,11 @@ app.post('/api/notes', (request, response, next) => {
         important: body.important || false,
     });
 
-    note.save().then(savedNote => {
-        response.json(savedNote);
-    })
-    .catch(error => next(error));
+    note.save()
+        .then(savedNote => {
+            response.json(savedNote);
+        })
+        .catch(error => next(error));
 });
 
 app.put('/api/notes/:id', (request, response, next) => {
