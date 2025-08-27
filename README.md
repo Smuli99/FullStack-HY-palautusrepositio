@@ -745,4 +745,503 @@ export default App;
 
 ## Osa3
 
+Osan 3 tehtävä palautus kokonaisuudessaan:
+
 Linkki tehtävän 3.10 osoitteelle: https://puhelinluettelo-g5gy.onrender.com/
+
+<details>
+<summary>Puhelinluettelo Backend</summary>
+
+### index.js
+
+```
+require('dotenv').config();
+const Person = require('./models/person');
+const express = require('express');
+const morgan = require('morgan');
+
+const app = express();
+
+app.use(express.json());
+app.use(express.static('dist'));
+
+morgan.token('body', (request) => {
+    return request.method === 'POST'
+        ? JSON.stringify(request.body)
+        : '';
+});
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
+
+app.get('/api/persons', (request, response, next) => {
+    Person.find({})
+        .then(persons => {
+            response.json(persons);
+        })
+        .catch(error => next(error));
+});
+
+app.get('/info', (request, response, next) => {
+    Person.countDocuments({})
+        .then(count => {
+            const date = new Date();
+            response.send(`
+                <p>Phonebook has info for ${count} people</p>
+                <p>${date}</p>
+            `);
+        })
+        .catch(error => next(error));
+});
+
+app.get('/api/persons/:id', (request, response, next) => {
+    const id = request.params.id;
+
+    Person.findById(id)
+        .then(person => {
+            if (person) response.json(person);
+            else response.status(404).end();
+        })
+        .catch(error => next(error));
+});
+
+// TODO:
+app.delete('/api/persons/:id', (request, response, next) => {
+    const id = request.params.id;
+
+    Person.findByIdAndDelete(id)
+        .then(() => {
+            console.log('Deleted', id);
+            response.status(204).end();
+        })
+        .catch(error => next(error));
+});
+
+app.post('/api/persons', (request, response, next) => {
+    const body = request.body;
+
+    if (!body.name || !body.number) {
+        return response.status(400).json({
+            error: 'name or number missing'
+        });
+    }
+
+    const name = body.name.trim();
+
+    const person = new Person({
+        name: name,
+        number: body.number,
+    });
+
+    person.save().then(savedNote => {
+        response.json(savedNote);
+        console.log('Added', person);
+    })
+        .catch(error => next(error));
+});
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const number = request.body.number;
+
+    Person.findById(request.params.id)
+        .then(person => {
+            if (!person) response.status(404).end();
+
+            person.number = number.trim();
+
+            return person.save()
+                .then(updatedPerson => {
+                    console.log('Updated', updatedPerson);
+                    response.json(updatedPerson);
+                });
+        })
+        .catch(error => next(error));
+});
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error);
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' });
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message });
+    }
+
+    next(error);
+};
+
+app.use(errorHandler);
+
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+```
+
+### /models/person.js
+
+```
+const mongoose = require('mongoose');
+
+mongoose.set('strictQuery', false);
+
+const url = process.env.MONGODB_URI;
+
+console.log('connection to', url);
+mongoose.connect(url)
+    .then(() => {
+        console.log('connected to MongoDB!');
+    })
+    .catch(error => {
+        console.log('error connection to MongoDB failed:', error);
+    });
+
+const personSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        minlength: 3,
+        required: true
+    },
+    number: {
+        type: String,
+        minlength: 8,
+        required: true,
+        validate: {
+            validator: (v) => {
+                return /^\d{2,3}-\d{5,}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number! Format: XX-XXXXX.. or XXX-XXXXX...`
+        }
+    },
+});
+
+personSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        returnedObject.id = returnedObject._id.toString();
+        delete returnedObject._id;
+        delete returnedObject.__v;
+    }
+});
+
+module.exports = mongoose.model('Person', personSchema);
+```
+
+### /package.json
+
+```
+{
+  "name": "puhelinluettelobackend",
+  "version": "1.0.0",
+  "description": "Backend for phonebook",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "build:ui": "rm -rf dist && cd ../../osa2/puhelinluettelo && npm run build && cp -r dist ../../osa3/puhelinluettelo-backend",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
+  },
+  "author": "Samu Hytönen",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "mongoose": "^8.18.0",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@stylistic/eslint-plugin-js": "^4.4.1",
+    "eslint": "^9.34.0",
+    "globals": "^16.3.0"
+  }
+}
+```
+
+### /eslint.config.mjs
+
+```
+import globals from 'globals'
+import js from '@eslint/js'
+import stylisticJs from '@stylistic/eslint-plugin-js'
+
+export default [
+  js.configs.recommended,
+  {
+    files: ['**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { ...globals.node },
+      ecmaVersion: 'latest',
+    },
+    plugins: {
+      '@stylistic/js': stylisticJs,
+    },
+    rules: {
+      '@stylistic/js/indent': ['error', 4],
+      '@stylistic/js/linebreak-style': ['error', 'unix'],
+      '@stylistic/js/quotes': ['error', 'single'],
+      '@stylistic/js/semi': ['error', 'always'],
+      eqeqeq: 'error',
+      'no-trailing-spaces': 'error',
+      'object-curly-spacing': ['error', 'always'],
+      'arrow-spacing': ['error', { before: true, after: true }],
+      'no-console': 'off',
+    },
+  },
+  {
+    ignores: ['dist/**'],
+  },
+]
+```
+
+</details>
+<details>
+<summary>Puhelinluettelo Frontend</summary>
+
+### App.jsx
+
+```
+import { useState, useEffect } from 'react';
+import numberService from './services/numbers';
+import Message from './components/Message';
+
+const Header = ({ text }) => <h1>{text}</h1>;
+
+const Persons = ({ persons, filter, deleteName }) => {
+  const filteredPersons = persons.filter(person => 
+    person.name.toLowerCase().includes(filter.trim().toLowerCase())
+  );
+  
+  return (
+    <ul>
+      {filteredPersons.map(person =>
+        <li key={person.id}>
+          {person.name} {person.number || '-no number-'}
+          <button onClick={() => deleteName(person.id)}>delete</button>
+        </li>
+      )}
+    </ul>
+  );
+};
+
+const Filter = ({ filter, handleFilter }) => {
+  return (
+    <div>
+      filter shown with <input value={filter} onChange={handleFilter} />
+    </div>
+  );
+};
+
+const NewPersonForm = ({ addName, newName, handleNewName, newNumber, handleNewNumber }) => {
+  return (
+    <form onSubmit={addName}>
+      <div>
+        name: <input value={newName} onChange={handleNewName} required="required" />
+      </div>
+      <div>
+        number: <input value={newNumber} onChange={handleNewNumber} />
+      </div>
+        <button type="submit">add</button>
+    </form>
+  );
+};
+
+const App = () => {
+  const [persons, setPersons] = useState([]);
+  const [newName, setNewName] = useState('');
+  const [newNumber, setNewNumber] = useState('');
+  const [filter, setFilter] = useState('');
+  const [message, setMessage] = useState(null);
+
+  useEffect(() =>{
+    numberService
+      .getAll()
+      .then(initialPersons => {
+        setPersons(initialPersons);
+      })
+  }, []);
+
+  const addName = (event) => {
+    event.preventDefault();
+    const exists = persons.some(person => 
+      person.name.trim().toLowerCase() === newName.trim().toLowerCase()
+    );
+
+    if (exists) {
+      if (window.confirm(`${newName} is already added to phonebook, replace the old number with new one?`)) {
+        const personToUpdate = persons.find(person =>
+          person.name.trim().toLowerCase() === newName.trim().toLowerCase()
+        );
+        const updatedPerson = { ...personToUpdate, number: newNumber.trim() };
+
+        numberService
+          .update(personToUpdate.id, updatedPerson)
+          .then(returnedPerson => {
+            setPersons(persons.map(person =>
+              person.id !== personToUpdate.id ? person : returnedPerson
+            ));
+            showMessage(`Updated ${updatedPerson.name}`);
+          })
+          .catch(error => {
+            showMessage(`Error: ${error.response.data.error}`, 5000);
+            setPersons(persons.filter(person =>
+              person.id !== personToUpdate.id
+            ));
+            console.log(error);
+          });
+      }
+    } else {
+      const personObject = {
+        name: newName,
+        number: newNumber.trim()
+      };
+      
+      numberService
+        .create(personObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson));
+          showMessage(`Added ${newName}`);
+        })
+        .catch(error => {
+          showMessage(`Error: ${error.response.data.error}`, 5000);
+          console.log(error.message);
+        });
+    }
+    
+    setNewName('');
+    setNewNumber('');
+  }
+
+  const deleteName = (id) => {
+    const person = persons.find(p => p.id === id);
+
+    if (window.confirm(`Delete ${person.name} ?`)) {
+      numberService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter(person =>
+            person.id !== id
+          ));
+          showMessage(`Deleted ${person.name}`);
+        })
+        .catch(error => {
+          showMessage(`Error: Person '${person.name}' was already removed from server`, 5000);
+          setPersons(persons.filter(p => p.id !== id));
+          console.log(`Error removing person: ${person.name}`, error);
+        });
+    }
+  }
+
+  const showMessage = (text, duration = 2000) => {
+    setMessage(text);
+    setTimeout(() => {
+      setMessage(null);
+    }, duration);
+  };
+
+  return (
+    <div>
+      <Header text="Phonebook" />
+      <Message message={message} />
+      <Filter filter={filter} handleFilter={(e) => setFilter(e.target.value)} />
+      <Header text="Add a new" />
+      <NewPersonForm 
+        addName={addName}
+        newName={newName}
+        handleNewName={(e) => setNewName(e.target.value)}
+        newNumber={newNumber}
+        handleNewNumber={(e) => setNewNumber(e.target.value)}
+      />
+      <Header text="Numbers" />
+      <Persons persons={persons} filter={filter} deleteName={deleteName} />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### /components/Message.jsx
+
+```
+const Message = ({ message }) => {
+    if (message === null) return null;
+
+    const className = message.toLowerCase().includes('error')
+        ? 'error'
+        : 'success'
+
+    return (
+        <div className={className}>
+            {message}
+        </div>
+    );
+};
+
+export default Message;
+```
+
+### /services/numbers.jsx
+
+```
+import axios from 'axios';
+
+const baseUrl = '/api/persons';
+
+const getAll = () => {
+    const request = axios.get(baseUrl);
+    return request.then(response => response.data);
+};
+
+const create = (newObject) => {
+    const request = axios.post(baseUrl, newObject);
+    return request.then(response => response.data);
+};
+
+const remove = (id) => {
+    return axios.delete(`${baseUrl}/${id}`);
+};
+
+const update = (id, newObject) => {
+    const request = axios.put(`${baseUrl}/${id}`, newObject);
+    return request.then(response => response.data);
+};
+
+export default { getAll, create, remove, update };
+```
+
+### index.css
+
+```
+.success {
+    color: green;
+    font-size: 20px;
+    background: lightgrey;
+    border: solid 5px green;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.error {
+    color: red;
+    font-size: 20px;
+    background: lightgrey;
+    border: solid 5px red;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+```
+
+### main.jsx
+
+```
+import reactDOM from 'react-dom/client';
+import App from './App.jsx';
+import './index.css';
+
+reactDOM.createRoot(document.getElementById('root')).render(<App />);
+```
+</details>
