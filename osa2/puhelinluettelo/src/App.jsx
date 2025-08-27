@@ -80,7 +80,7 @@ const App = () => {
             showMessage(`Updated ${updatedPerson.name}`);
           })
           .catch(error => {
-            showMessage(`Error: Information of ${personToUpdate.name} has already been removed from server`, 5000);
+            showMessage(`Error: ${error.response.data.error}`, 5000);
             setPersons(persons.filter(person =>
               person.id !== personToUpdate.id
             ));
@@ -100,7 +100,7 @@ const App = () => {
           showMessage(`Added ${newName}`);
         })
         .catch(error => {
-          showMessage(`Error: ${error.response.data.error}`);
+          showMessage(`Error: ${error.response.data.error}`, 5000);
           console.log(error.message);
         });
     }

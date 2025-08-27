@@ -3,7 +3,7 @@ const Message = ({ message }) => {
 
     const className = message.toLowerCase().includes('error')
         ? 'error'
-        : 'message'
+        : 'success'
 
     return (
         <div className={className}>
