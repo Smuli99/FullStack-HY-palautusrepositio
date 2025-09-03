@@ -57,6 +57,7 @@ test('dummy returns one', () => {
   assert.strictEqual(listHelper.dummy([]), 1);
 });
 
+// Total Likes
 describe('total likes', () => {
   const listWithOneBlog = [
     {
@@ -82,6 +83,7 @@ describe('total likes', () => {
   });
 });
 
+// Favorite Blog
 describe('favorite blog', () => {
   test('when list has no blogs favorite blog equals to zero', () => {
     assert.strictEqual(listHelper.favoriteBlog([]), 0);
@@ -92,6 +94,7 @@ describe('favorite blog', () => {
   });
 });
 
+// Most Blogs
 describe('most blogs', () => {
   test('when list has no blogs returns zero', () => {
     assert.strictEqual(listHelper.mostBlogs([]), 0);
@@ -104,5 +107,22 @@ describe('most blogs', () => {
     };
 
     assert.deepStrictEqual(listHelper.mostBlogs(blogs), result);
+  });
+});
+
+// Most Likes
+describe('most likes', () => {
+  test('when list has no blogs returns zero', () => {
+    assert.strictEqual(listHelper.mostLikes([]), 0);
+  });
+
+  test('when list has multiple blogs return author with most likes', () => {
+    const result = listHelper.mostLikes(blogs);
+    const expected = {
+      author: 'Edsger W. Dijkstra',
+      likes: 17,
+    };
+
+    assert.deepStrictEqual(result, expected);
   });
 });
