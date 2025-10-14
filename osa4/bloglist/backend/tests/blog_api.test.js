@@ -115,6 +115,27 @@ describe('when there is initially some blogs saved', () => {
       assert(!titles.includes(blogToDelete.title));
     });
   });
+
+  describe('edition of a blog', () => {
+    test('succeeds in updating a blog', async () => {
+      const blogsAtStart = await helper.blogsInDb();
+      const blogToUpdate = blogsAtStart[0];
+
+      const updatedData = { ...blogToUpdate, likes: blogToUpdate.likes + 1 };
+
+      await api
+        .put(`/api/blogs/${blogToUpdate.id}`)
+        .send(updatedData)
+        .expect(200)
+        .expect('Content-Type', /application\/json/);
+
+      const blogsAtEnd = await helper.blogsInDb();
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
+
+      const updatedBlog = blogsAtEnd.find((b) => b.id === blogToUpdate.id);
+      assert.strictEqual(updatedBlog.likes, blogToUpdate.likes + 1);
+    });
+  });
 });
 
 after(async () => {
