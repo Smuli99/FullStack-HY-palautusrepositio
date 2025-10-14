@@ -5,6 +5,7 @@ const supertest = require('supertest');
 const app = require('../app');
 const helper = require('./test_helper');
 const Blog = require('../models/blog');
+const { title } = require('node:process');
 
 const api = supertest(app);
 
@@ -33,6 +34,27 @@ test('blogs unique identifier is named id not _id', async () => {
   assert.ok(blog.id);
   // eslint-disable-next-line no-underscore-dangle
   assert.strictEqual(blog._id, undefined);
+});
+
+test('a valid blog can be added', async () => {
+  const newBlog = {
+    title: 'New Blog',
+    author: 'Author Name',
+    url: 'http://example.com/new-blog',
+    likes: 5,
+  };
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/);
+
+  const blogsAtEnd = await helper.blogsInDb();
+  assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1);
+
+  const titles = blogsAtEnd.map((b) => b.title);
+  assert(titles.includes('New Blog'));
 });
 
 after(async () => {
