@@ -56,7 +56,7 @@ test('a valid blog can be added', async () => {
   assert(titles.includes('New Blog'));
 });
 
-test.only('blog without likes defaults to 0', async () => {
+test('blog without likes defaults to 0', async () => {
   const newBlog = {
     title: 'Blog Without Likes',
     author: 'Author Name',
@@ -74,6 +74,21 @@ test.only('blog without likes defaults to 0', async () => {
 
   const addedBlog = blogsAtEnd.find((b) => b.title === 'Blog Without Likes');
   assert.strictEqual(addedBlog.likes, 0);
+});
+
+test('blog without title and url is not added', async () => {
+  const newBlog = {
+    author: 'Author Name',
+    likes: 3,
+  };
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400);
+
+  const blogsAtEnd = await helper.blogsInDb();
+  assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
 });
 
 after(async () => {
