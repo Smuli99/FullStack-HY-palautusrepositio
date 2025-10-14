@@ -5,7 +5,6 @@ const supertest = require('supertest');
 const app = require('../app');
 const helper = require('./test_helper');
 const Blog = require('../models/blog');
-const { title } = require('node:process');
 
 const api = supertest(app);
 
@@ -55,6 +54,26 @@ test('a valid blog can be added', async () => {
 
   const titles = blogsAtEnd.map((b) => b.title);
   assert(titles.includes('New Blog'));
+});
+
+test.only('blog without likes defaults to 0', async () => {
+  const newBlog = {
+    title: 'Blog Without Likes',
+    author: 'Author Name',
+    url: 'http://example.com/blog-without-likes',
+  };
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/);
+
+  const blogsAtEnd = await helper.blogsInDb();
+  assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1);
+
+  const addedBlog = blogsAtEnd.find((b) => b.title === 'Blog Without Likes');
+  assert.strictEqual(addedBlog.likes, 0);
 });
 
 after(async () => {
