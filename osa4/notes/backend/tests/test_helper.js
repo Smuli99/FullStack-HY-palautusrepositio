@@ -65,6 +65,16 @@ const usersInDb = async () => {
   return users.map(u => u.toJSON());
 };
 
+const loginAndGetToken = async (api, username, password) => {
+  const response = await api
+    .post('/api/login')
+    .send({ username, password })
+    .expect(200)
+    .expect('Content-Type', /application\/json/);
+
+  return response.body.token;
+};
+
 module.exports = {
   initialNotes,
   initialUsers,
@@ -72,4 +82,5 @@ module.exports = {
   notesInDb,
   usersInDb,
   seedDatabase,
+  loginAndGetToken,
 };

@@ -8,6 +8,46 @@ const User = require('../models/user');
 
 const api = supertest(app);
 
+describe('login and token handling', () => {
+  beforeEach(async () => {
+    await User.deleteMany({});
+    const users = await helper.initialUsers();
+    await User.insertMany(users);
+  });
+
+  test('login succeeds with correct credentials', async () => {
+    const loginDetails = {
+      username: 'hytosama',
+      password: 'sekret',
+    };
+
+    const response = await api
+      .post('/api/login')
+      .send(loginDetails)
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+
+    assert(response.body.token, 'Response should include a token');
+    assert.strictEqual(response.body.username, loginDetails.username);
+  });
+
+  test('login fails with statuscode 401 if invalid credentials', async () => {
+    const loginDetails = {
+      username: 'hytosama',
+      password: 'wrong',
+    };
+
+    const response = await api
+      .post('/api/login')
+      .send(loginDetails)
+      .expect(401)
+      .expect('Content-Type', /application\/json/);
+
+    assert.strictEqual(response.body.error, 'invalid username or password');
+    assert(!response.body.token, 'Response should not include a token');
+  });
+});
+
 describe('when there is initially some notes saved', () => {
   beforeEach(async () => {
     await helper.seedDatabase();
@@ -70,6 +110,8 @@ describe('when there is initially some notes saved', () => {
       const users = await helper.usersInDb();
       const user = users[0];
 
+      const token = await helper.loginAndGetToken(api, user.username, 'sekret');
+
       const newNote = {
         content: 'async/await simplifies making async calls',
         important: true,
@@ -78,6 +120,7 @@ describe('when there is initially some notes saved', () => {
 
       await api
         .post('/api/notes')
+        .set('Authorization', `Bearer ${token}`)
         .send(newNote)
         .expect(201)
         .expect('Content-Type', /application\/json/);
@@ -90,12 +133,18 @@ describe('when there is initially some notes saved', () => {
     });
 
     test('fails with status code 400 if data invalid', async () => {
+      const users = await helper.usersInDb();
+      const user = users[0];
+
+      const token = await helper.loginAndGetToken(api, user.username, 'sekret');
+
       const newNote = {
         important: true,
       };
 
       await api
         .post('/api/notes')
+        .set('Authorization', `Bearer ${token}`)
         .send(newNote)
         .expect(400);
 
