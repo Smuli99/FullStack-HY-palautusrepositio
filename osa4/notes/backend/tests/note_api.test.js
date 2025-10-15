@@ -4,14 +4,13 @@ const mongoose = require('mongoose');
 const supertest = require('supertest');
 const app = require('../app');
 const helper = require('./test_helper');
-const Note = require('../models/note');
+const User = require('../models/user');
 
 const api = supertest(app);
 
 describe('when there is initially some notes saved', () => {
   beforeEach(async () => {
-    await Note.deleteMany({});
-    await Note.insertMany(helper.initialNotes);
+    await helper.seedDatabase();
   });
 
   test('notes are returned as json', async () => {
@@ -44,7 +43,9 @@ describe('when there is initially some notes saved', () => {
         .expect(200)
         .expect('Content-Type', /application\/json/);
 
-      assert.deepStrictEqual(resultNote.body, noteToView);
+      assert.strictEqual(resultNote.body.content, noteToView.content);
+      assert.strictEqual(resultNote.body.important, noteToView.important);
+      assert.strictEqual(resultNote.body.id, noteToView.id);
     });
 
     test('fails with status code 404 if note does not exist', async () => {
@@ -66,9 +67,13 @@ describe('when there is initially some notes saved', () => {
 
   describe('addition of a new note', () => {
     test('succeeds with valid data', async () => {
+      const users = await helper.usersInDb();
+      const user = users[0];
+
       const newNote = {
         content: 'async/await simplifies making async calls',
         important: true,
+        userId: user.id,
       };
 
       await api
@@ -119,6 +124,56 @@ describe('when there is initially some notes saved', () => {
   });
 });
 
+describe('when there is initially two users in db', () => {
+  beforeEach(async () => {
+    await User.deleteMany({});
+    const users = await helper.initialUsers();
+    await User.insertMany(users);
+  });
+
+  test('creation succeeds with a fresh username', async () => {
+    const usersAtStart = await helper.usersInDb();
+
+    const newUser = {
+      username: 'foobar',
+      name: 'barfoo',
+      password: 'foodbar',
+    };
+
+    await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(201)
+      .expect('Content-Type', /application\/json/);
+
+    const usersAtEnd = await helper.usersInDb();
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length + 1);
+
+    const usernames = usersAtEnd.map(u => u.username);
+    assert(usernames.includes(newUser.username));
+  });
+
+  test('creation fails with proper statuscode and message if username already taken', async () => {
+    const usersAtStart = await helper.usersInDb();
+
+    const newUser = {
+      username: 'root',
+      name: 'Superuser',
+      password: 'salainen',
+    };
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/);
+
+    const usersAtEnd = await helper.usersInDb();
+
+    assert(result.body.error.includes('expected `username` to be unique'));
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length);
+  });
+});
 
 after(async () => {
   await mongoose.connection.close();
