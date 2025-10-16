@@ -49,6 +49,21 @@ const usersInDb = async () => {
   return users.map((u) => u.toJSON());
 };
 
+const nonExistingId = async (user) => {
+  const blog = new Blog({
+    title: 'willremovethissoon',
+    author: 'nobody',
+    url: 'http://example.com',
+    likes: 0,
+    user: user.id,
+  });
+
+  await blog.save();
+  await blog.deleteOne();
+
+  return blog._id.toString();
+};
+
 const setDatabase = async () => {
   await Blog.deleteMany({});
   await User.deleteMany({});
@@ -81,6 +96,7 @@ module.exports = {
   initialUsers,
   blogsInDb,
   usersInDb,
+  nonExistingId,
   setDatabase,
   loginAndGetToken,
 };

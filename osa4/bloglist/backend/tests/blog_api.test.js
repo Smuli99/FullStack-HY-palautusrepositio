@@ -118,12 +118,18 @@ describe('when there is initially some blogs saved', () => {
   });
 
   describe('deletion of a blog', () => {
-    test('succeeds with status code 204 if id is valid', async () => {
+    test('succeeds with status code 204 if id is valid and user is the creator', async () => {
       const blogsAtStart = await helper.blogsInDb();
       const blogToDelete = blogsAtStart[0];
 
+      const users = await helper.usersInDb();
+      const user = users.find((u) => u.id === blogToDelete.user.toString());
+
+      const token = await helper.loginAndGetToken(api, user.username, 'salainen');
+
       await api
         .delete(`/api/blogs/${blogToDelete.id}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(204);
 
       const blogsAtEnd = await helper.blogsInDb();
@@ -131,6 +137,59 @@ describe('when there is initially some blogs saved', () => {
 
       const titles = blogsAtEnd.map((b) => b.title);
       assert(!titles.includes(blogToDelete.title));
+    });
+
+    test('fails with status code 403 if user is not the creator of the blog', async () => {
+      const blogsAtStart = await helper.blogsInDb();
+      const blogToDelete = blogsAtStart[0];
+
+      const users = await helper.usersInDb();
+      const user = users.find((u) => u.id !== blogToDelete.user.toString());
+
+      const token = await helper.loginAndGetToken(api, user.username, 'salainen');
+
+      const result = await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(403);
+
+      assert(result.body.error.includes('forbidden: only the creator can delete this blog'));
+
+      const blogsAtEnd = await helper.blogsInDb();
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
+    });
+
+    test('fails with status code 401 if user is not logged in', async () => {
+      const blogsAtStart = await helper.blogsInDb();
+      const blogToDelete = blogsAtStart[0];
+
+      const result = await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .expect(401);
+
+      assert(result.body.error.includes('user not logged in'));
+
+      const blogsAtEnd = await helper.blogsInDb();
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
+    });
+
+    test('fails with status code 404 if blog does not exist', async () => {
+      const users = await helper.usersInDb();
+      const user = users[0];
+
+      const token = await helper.loginAndGetToken(api, user.username, 'salainen');
+
+      const validNonexistingId = await helper.nonExistingId(user);
+
+      const result = await api
+        .delete(`/api/blogs/${validNonexistingId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(404);
+
+      assert(result.body.error.includes('blog not found'));
+
+      const blogsAtEnd = await helper.blogsInDb();
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
     });
   });
 
