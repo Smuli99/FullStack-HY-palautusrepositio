@@ -9,7 +9,6 @@ const mongoose = require('mongoose');
 const supertest = require('supertest');
 const app = require('../app');
 const helper = require('./test_helper');
-const User = require('../models/user');
 
 const api = supertest(app);
 
@@ -45,6 +44,8 @@ describe('when there is initially some blogs saved', () => {
       const users = await helper.usersInDb();
       const user = users[0];
 
+      const token = await helper.loginAndGetToken(api, user.username, 'salainen');
+
       const newBlog = {
         title: 'New Blog',
         author: 'Author Name',
@@ -55,6 +56,7 @@ describe('when there is initially some blogs saved', () => {
 
       await api
         .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/);
@@ -70,6 +72,8 @@ describe('when there is initially some blogs saved', () => {
       const users = await helper.usersInDb();
       const user = users[0];
 
+      const token = await helper.loginAndGetToken(api, user.username, 'salainen');
+
       const newBlog = {
         title: 'Blog Without Likes',
         author: 'Author Name',
@@ -79,6 +83,7 @@ describe('when there is initially some blogs saved', () => {
 
       await api
         .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/);
@@ -91,6 +96,11 @@ describe('when there is initially some blogs saved', () => {
     });
 
     test('blog without title and url is not added', async () => {
+      const users = await helper.usersInDb();
+      const user = users[0];
+
+      const token = await helper.loginAndGetToken(api, user.username, 'salainen');
+
       const newBlog = {
         author: 'Author Name',
         likes: 3,
@@ -98,6 +108,7 @@ describe('when there is initially some blogs saved', () => {
 
       await api
         .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(400);
 

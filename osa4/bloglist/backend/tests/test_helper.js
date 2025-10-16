@@ -22,7 +22,7 @@ const initialBlogs = [
 ];
 
 const initialUsers = async () => {
-  const passwordHash = await bcrypt.hash('sekret', 10);
+  const passwordHash = await bcrypt.hash('salainen', 10);
   const passwordHash2 = await bcrypt.hash('salainen', 10);
 
   return [
@@ -66,10 +66,21 @@ const setDatabase = async () => {
   await Blog.insertMany(blogsWithUser);
 };
 
+const loginAndGetToken = async (api, username, password) => {
+  const response = await api
+    .post('/api/login')
+    .send({ username, password })
+    .expect(200)
+    .expect('Content-Type', /application\/json/);
+
+  return response.body.token;
+};
+
 module.exports = {
   initialBlogs,
   initialUsers,
   blogsInDb,
   usersInDb,
   setDatabase,
+  loginAndGetToken,
 };
