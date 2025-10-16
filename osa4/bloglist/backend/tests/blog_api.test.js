@@ -9,15 +9,13 @@ const mongoose = require('mongoose');
 const supertest = require('supertest');
 const app = require('../app');
 const helper = require('./test_helper');
-const Blog = require('../models/blog');
 const User = require('../models/user');
 
 const api = supertest(app);
 
 describe('when there is initially some blogs saved', () => {
   beforeEach(async () => {
-    await Blog.deleteMany({});
-    await Blog.insertMany(helper.initialBlogs);
+    await helper.setDatabase();
   });
 
   test('blogs are returned as json', async () => {
@@ -44,11 +42,15 @@ describe('when there is initially some blogs saved', () => {
 
   describe('addition of a new blog', () => {
     test('succeeds with a valid data', async () => {
+      const users = await helper.usersInDb();
+      const user = users[0];
+
       const newBlog = {
         title: 'New Blog',
         author: 'Author Name',
         url: 'http://example.com/new-blog',
         likes: 5,
+        userId: user.id,
       };
 
       await api
@@ -65,10 +67,14 @@ describe('when there is initially some blogs saved', () => {
     });
 
     test('blog without likes defaults to 0', async () => {
+      const users = await helper.usersInDb();
+      const user = users[0];
+
       const newBlog = {
         title: 'Blog Without Likes',
         author: 'Author Name',
         url: 'http://example.com/blog-without-likes',
+        userId: user.id,
       };
 
       await api
@@ -139,18 +145,16 @@ describe('when there is initially some blogs saved', () => {
   });
 });
 
-describe('when there is initially one user in db', () => {
+describe('when there is initially users in db', () => {
   beforeEach(async () => {
-    await User.deleteMany({});
-    const user = new User(helper.initialUsers[0]);
-    await user.save();
+    await helper.setDatabase();
   });
 
   test('creation succeeds with a fresh username with statuscode 201', async () => {
     const usersAtStart = await helper.usersInDb();
 
     const newUser = {
-      username: 'foobar',
+      username: 'barfoo',
       name: 'Foo Bar',
       password: 'salainen',
     };
