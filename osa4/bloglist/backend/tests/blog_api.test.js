@@ -68,6 +68,25 @@ describe('when there is initially some blogs saved', () => {
       assert(titles.includes('New Blog'));
     });
 
+    test('fails with status code 401 if token is not provided', async () => {
+      const newBlog = {
+        title: 'Unauthorized Blog',
+        author: 'Author Name',
+        url: 'http://example.com/unauthorized-blog',
+        likes: 2,
+      };
+
+      const result = await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(401);
+
+      assert(result.body.error.includes('unauthorized: user not logged in'));
+
+      const blogsAtEnd = await helper.blogsInDb();
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
+    });
+
     test('blog without likes defaults to 0', async () => {
       const users = await helper.usersInDb();
       const user = users[0];

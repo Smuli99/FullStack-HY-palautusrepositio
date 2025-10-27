@@ -1,7 +1,6 @@
-const jwt = require('jsonwebtoken');
 const blogsRouter = require('express').Router();
+const { userExtractor } = require('../utils/middleware');
 const Blog = require('../models/blog');
-const User = require('../models/user');
 
 blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 });
@@ -17,19 +16,8 @@ blogsRouter.get('/:id', async (request, response) => {
   }
 });
 
-blogsRouter.post('/', async (request, response) => {
-  const { body } = request;
-  const decodedToken = jwt.verify(request.token, process.env.SECRET);
-
-  if (!decodedToken.id) {
-    return response.status(401).json({ error: 'token missing or invalid' });
-  }
-
-  const user = await User.findById(decodedToken.id);
-
-  if (!user) {
-    return response.status(400).json({ error: 'userId missing or not valid' });
-  }
+blogsRouter.post('/', userExtractor, async (request, response) => {
+  const { body, user } = request;
 
   if (!body.title || !body.url) {
     return response.status(400).json({ error: 'title or url missing' });
@@ -72,16 +60,8 @@ blogsRouter.put('/:id', async (request, response) => {
   return response.json(updatedBlog);
 });
 
-blogsRouter.delete('/:id', async (request, response) => {
-  if (!request.token) {
-    return response.status(401).json({ error: 'user not logged in' });
-  }
-
-  const decodedToken = jwt.verify(request.token, process.env.SECRET);
-
-  if (!decodedToken.id) {
-    return response.status(401).json({ error: 'token missing or invalid' });
-  }
+blogsRouter.delete('/:id', userExtractor, async (request, response) => {
+  const { user } = request;
 
   const blog = await Blog.findById(request.params.id);
 
@@ -89,9 +69,7 @@ blogsRouter.delete('/:id', async (request, response) => {
     return response.status(404).json({ error: 'blog not found' });
   }
 
-  const userId = blog.user.toString();
-
-  if (decodedToken.id.toString() !== userId.toString()) {
+  if (blog.user.toString() !== user.id.toString()) {
     return response.status(403).json({ error: 'forbidden: only the creator can delete this blog' });
   }
 
