@@ -1245,3 +1245,9 @@ import './index.css';
 reactDOM.createRoot(document.getElementById('root')).render(<App />);
 ```
 </details>
+
+## Osa 4
+
+Osan 4 tehtävä palautus kokonaisuudessaan:
+
+Blogi Lista Backend: https://github.com/Smuli99/FullStack-HY-palautusrepositio/tree/main/osa4/bloglist/backend
