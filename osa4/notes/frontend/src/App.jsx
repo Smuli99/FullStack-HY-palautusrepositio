@@ -22,6 +22,15 @@ const App = () => {
       });
   }, []);
 
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedNoteAppUser');
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      noteService.setToken(user.token);
+    }
+  }, []);
+
   const toggleImportanceOf = (id) => {
     const note = notes.find(n => n.id === id);
     const changedNote = { ...note, important: !note.important };
@@ -58,15 +67,57 @@ const App = () => {
       });
   };
 
+  const loginForm = () => (
+    <form onSubmit={handleLogin}>
+      <div>
+        <label>
+          username
+          <input
+            type="text"
+            value={username}
+            onChange={({ target }) => setUsername(target.value)}
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          password
+          <input
+            type="password"
+            value={password}
+            onChange={({ target }) => setPassword(target.value)}
+          />
+        </label>
+      </div>
+      <button type="submit">login</button>
+    </form>
+  );
+
+  const noteForm = () => (
+    <form onSubmit={addNote}>
+      <input 
+        value={newNote}
+        onChange={handleNoteChange} 
+      />
+      <button type="submit">Save</button>
+    </form>
+  );
+
   const notesToShow = showAll ? notes : notes.filter(note => note.important === true);
 
   const handleNoteChange = (event) => setNewNote(event.target.value);
 
-  const handleLogin = async event => {
+  const handleLogin = async (event) => {
     event.preventDefault()
     
     try {
       const user = await loginService.login({ username, password });
+
+      window.localStorage.setItem(
+        'loggedNoteAppUser', JSON.stringify(user)
+      );
+
+      noteService.setToken(user.token);
       setUser(user);
       setUsername('');
       setPassword('');
@@ -78,35 +129,25 @@ const App = () => {
     }
   };
 
+  const handleLogout = () => {
+    window.localStorage.removeItem('loggedNoteAppUser');
+    setUser(null);
+    noteService.setToken(null);
+  };
+
   return (
     <div>
       <h1>Notes</h1>
       <Notification message={errorMessage} />
 
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
+      {!user && loginForm()}
+      {user && (
         <div>
-          <label>
-            username
-            <input
-              type="text"
-              value={username}
-              onChange={({ target }) => setUsername(target.value)}
-            />
-          </label>
+          <p>{user.name} logged in</p>
+          <button onClick={() => handleLogout()}>logout</button>
+          {noteForm()}
         </div>
-        <div>
-          <label>
-            password
-            <input
-              type="password"
-              value={password}
-              onChange={({ target }) => setPassword(target.value)}
-            />
-          </label>
-        </div>
-        <button type="submit">login</button>
-      </form>
+      )}
 
       <div>
         <button onClick={() => setShowAll(!showAll)}>
@@ -122,13 +163,7 @@ const App = () => {
           />
         )}
       </ul>
-      <form onSubmit={addNote}>
-        <input 
-          value={newNote}
-          onChange={handleNoteChange} 
-        />
-        <button type="submit">Save</button>
-      </form>
+
       <Footer />
     </div>
   );
