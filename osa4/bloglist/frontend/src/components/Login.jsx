@@ -1,12 +1,23 @@
+import { useState } from "react"
 import ErrorMessage from "./ErrorMessage"
 
-const Login = ({ username, password, setUsername, setPassword, handleLogin, errorMessage }) => {
+const Login = ({ handleLogin, errorMessage }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  
+  const login = (event) => {
+    event.preventDefault();
+    handleLogin(username, password);
+    setUsername('');
+    setPassword('');
+  };
+
   return (
     <div className="loginScreen">
       <h2>log in to application</h2>
       <ErrorMessage message={errorMessage} />
       
-      <form onSubmit={handleLogin}>
+      <form onSubmit={login}>
         <div>
           <label>
             username
