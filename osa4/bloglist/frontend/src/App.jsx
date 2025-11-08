@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
-import Login from './components/Login'
+import Login from './components/LoginForm'
 import BlogForm from './components/BlogForm'
+import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [notification, setNotification] = useState(null);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -37,9 +38,9 @@ const App = () => {
   
       setUser(user);
     } catch {
-      setErrorMessage('wrong credentials');
+      setNotification({  message: 'wrong username or password', type: 'error' });
       setTimeout(() => {
-        setErrorMessage(null);
+        setNotification(null);
       }, 5000);
     }
   };
@@ -48,26 +49,37 @@ const App = () => {
     window.localStorage.removeItem('loggedBlogAppUser');
     setUser(null);
     blogService.setToken(null);
+
+    setNotification({ message: 'logged out successfully', type: 'success' });
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000);
   };
 
   const handleNewBlog = async (title, author, url) => {
     const newBlog = { title, author, url };
     const createdBlog = await blogService.create(newBlog);
     setBlogs(blogs.concat(createdBlog));
+    setNotification({ message: `a new blog ${title} by ${author} added`, type: 'success' });
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000);
   };
 
   return (
     <>
       {!user && (
-        <Login 
-          handleLogin={handleLogin}
-          errorMessage={errorMessage}
-        />
+        <div>
+          <h2>log in to application</h2>
+          <Notification notification={notification} />
+          <Login handleLogin={handleLogin}/>
+        </div>
       )}
       {user && (
         <div>
           <div>
             <h2>blogs</h2>
+            <Notification message={notification} />
             <p>{user.name} logged in</p>
             <button onClick={() => handleLogout()}>logout</button>
             {blogs.map(blog =>
