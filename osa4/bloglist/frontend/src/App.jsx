@@ -79,7 +79,7 @@ const App = () => {
         <div>
           <div>
             <h2>blogs</h2>
-            <Notification message={notification} />
+            <Notification notification={notification} />
             <p>{user.name} logged in</p>
             <button onClick={() => handleLogout()}>logout</button>
             {blogs.map(blog =>
