@@ -56,11 +56,10 @@ const App = () => {
     }, 5000);
   };
 
-  const handleNewBlog = async (title, author, url) => {
-    const newBlog = { title, author, url };
-    const createdBlog = await blogService.create(newBlog);
-    setBlogs(blogs.concat(createdBlog));
-    setNotification({ message: `a new blog ${title} by ${author} added`, type: 'success' });
+  const handleNewBlog = async (blogObject) => {
+    const newBlog = await blogService.create(blogObject);
+    setBlogs(blogs.concat(newBlog));
+    setNotification({ message: `a new blog ${newBlog.title} by ${newBlog.author} added`, type: 'success' });
     setTimeout(() => {
       setNotification(null);
     }, 5000);
