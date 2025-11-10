@@ -25,7 +25,9 @@ const Blog = ({ blog, handleAddLike }) => {
       </div>
       {detailsVisible && (
         <div>
-          <p>{blog.url}</p>
+          <p>
+            <a href={blog.url}>{blog.url}</a>
+          </p>
           <div>
             likes {blog.likes}
             <button onClick={() => handleAddLike(blog.id)}>like</button>
