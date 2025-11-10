@@ -70,6 +70,24 @@ const App = () => {
     }, 5000);
   };
 
+  const handleAddLike = async (id) => {
+    try {
+      const blogToUpdate = blogs.find(b => b.id === id);
+      const updatedBlog = {
+        ...blogToUpdate,
+        likes: blogToUpdate.likes + 1
+      };
+
+      const returnedBlog = await blogService.update(id, updatedBlog);
+      setBlogs(blogs.map(b => b.id !== id ? b : returnedBlog));
+    } catch {
+      setNotification({ message: 'error adding like', type: 'error' });
+      setTimeout(() => {
+        setNotification(null);
+      }, 5000);
+    }
+  };
+
   return (
     <>
       {!user && (
@@ -89,7 +107,7 @@ const App = () => {
             </div>
             
             {blogs.map(blog =>
-              <Blog key={blog.id} blog={blog} />
+              <Blog key={blog.id} blog={blog} handleAddLike={handleAddLike} />
             )}
           </div>
           <div>
