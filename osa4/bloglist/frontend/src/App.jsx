@@ -61,7 +61,7 @@ const App = () => {
 
   const handleNewBlog = async (blogObject) => {
     blogFromRef.current.toggleVisibility();
-    
+
     const newBlog = await blogService.create(blogObject);
     setBlogs(blogs.concat(newBlog));
     setNotification({ message: `a new blog ${newBlog.title} by ${newBlog.author} added`, type: 'success' });
@@ -82,14 +82,18 @@ const App = () => {
           <div>
             <h2>blogs</h2>
             <Notification notification={notification} />
-            <p>{user.name} logged in</p>
-            <button onClick={() => handleLogout()}>logout</button>
+
+            <div>
+              <span>{user.name} logged in</span>
+              <button onClick={() => handleLogout()}>logout</button>
+            </div>
+            
             {blogs.map(blog =>
               <Blog key={blog.id} blog={blog} />
             )}
           </div>
           <div>
-            <Togglable buttonLabel="create new blog" ref={blogFromRef}>
+            <Togglable showButtonLabel="create new blog" ref={blogFromRef}>
               <BlogForm handleNewBlog={handleNewBlog} />
             </Togglable>
           </div>
@@ -97,7 +101,7 @@ const App = () => {
         </div>
       )}
     </>
-  )
+  );
 };
 
 export default App;
