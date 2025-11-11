@@ -1,71 +1,71 @@
-import { useState, useEffect, useRef } from 'react'
-import noteService from './services/notes'
-import loginService from './services/login'
-import Notification from './components/Notification'
-import LoginForm from './components/LoginForm'
-import NoteForm from './components/NoteForm'
-import Togglable from './components/Togglable'
-import Footer from './components/Footer'
-import Note from './components/Note'
+import { useState, useEffect, useRef } from 'react';
+import noteService from './services/notes';
+import loginService from './services/login';
+import Notification from './components/Notification';
+import LoginForm from './components/LoginForm';
+import NoteForm from './components/NoteForm';
+import Togglable from './components/Togglable';
+import Footer from './components/Footer';
+import Note from './components/Note';
 
 const App = () => {
-  const [notes, setNotes] = useState([])
-  const [showAll, setShowAll] = useState(true)
-  const [errorMessage, setErrorMessage] = useState(null)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
+  const [notes, setNotes] = useState([]);
+  const [showAll, setShowAll] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [user, setUser] = useState(null);
 
-  const noteFormRef = useRef()
+  const noteFormRef = useRef();
 
   useEffect(() => {
     noteService
       .getAll()
       .then(initialNotes => {
-        setNotes(initialNotes)
-      })
-  }, [])
+        setNotes(initialNotes);
+      });
+  }, []);
 
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedNoteAppUser')
+    const loggedUserJSON = window.localStorage.getItem('loggedNoteAppUser');
     if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
-      setUser(user)
-      noteService.setToken(user.token)
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      noteService.setToken(user.token);
     }
-  }, [])
+  }, []);
 
   const toggleImportanceOf = (id) => {
-    const note = notes.find(n => n.id === id)
-    const changedNote = { ...note, important: !note.important }
+    const note = notes.find(n => n.id === id);
+    const changedNote = { ...note, important: !note.important };
 
     noteService
       .update(id, changedNote)
       .then(returnedNote => {
         setNotes(notes.map(note =>
           note.id !== id ? note : returnedNote
-        ))
+        ));
       })
       .catch(error => {
-        setErrorMessage(`Note '${note.content}' was already removed from server`)
+        setErrorMessage(`Note '${note.content}' was already removed from server`);
         setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
-        setNotes(notes.filter(n => n.id !== id))
-        console.log(error)
-      })
-  }
+          setErrorMessage(null);
+        }, 5000);
+        setNotes(notes.filter(n => n.id !== id));
+        console.log(error);
+      });
+  };
 
   const addNote = (noteObject) => {
-    noteFormRef.current.toggleVisibility()
+    noteFormRef.current.toggleVisibility();
     noteService
       .create(noteObject)
       .then(returnedNote => {
-        setNotes(notes.concat(returnedNote))
-      })
-  }
+        setNotes(notes.concat(returnedNote));
+      });
+  };
 
-  const notesToShow = showAll ? notes : notes.filter(note => note.important === true)
+  const notesToShow = showAll ? notes : notes.filter(note => note.important === true);
 
   const loginForm = () => (
     <Togglable buttonLabel="login">
@@ -77,41 +77,41 @@ const App = () => {
         handleSubmit={handleLogin}
       />
     </Togglable>
-  )
+  );
 
   const noteForm = () => (
     <Togglable buttonLabel="new note" ref={noteFormRef}>
       <NoteForm createNote={addNote} />
     </Togglable>
-  )
+  );
 
   const handleLogin = async (event) => {
-    event.preventDefault()
+    event.preventDefault();
 
     try {
-      const user = await loginService.login({ username, password })
+      const user = await loginService.login({ username, password });
 
       window.localStorage.setItem(
         'loggedNoteAppUser', JSON.stringify(user)
-      )
+      );
 
-      noteService.setToken(user.token)
-      setUser(user)
-      setUsername('')
-      setPassword('')
+      noteService.setToken(user.token);
+      setUser(user);
+      setUsername('');
+      setPassword('');
     } catch {
-      setErrorMessage('wrong credentials')
+      setErrorMessage('wrong credentials');
       setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+        setErrorMessage(null);
+      }, 5000);
     }
-  }
+  };
 
   const handleLogout = () => {
-    window.localStorage.removeItem('loggedNoteAppUser')
-    setUser(null)
-    noteService.setToken(null)
-  }
+    window.localStorage.removeItem('loggedNoteAppUser');
+    setUser(null);
+    noteService.setToken(null);
+  };
 
   return (
     <div>
@@ -144,7 +144,7 @@ const App = () => {
 
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
