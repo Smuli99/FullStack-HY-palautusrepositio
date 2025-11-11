@@ -42,9 +42,7 @@ const App = () => {
       setUser(user);
     } catch {
       setNotification({  message: 'wrong username or password', type: 'error' });
-      setTimeout(() => {
-        setNotification(null);
-      }, 5000);
+      setTimeout(() => setNotification(null), 5000);
     }
   };
 
@@ -54,9 +52,7 @@ const App = () => {
     blogService.setToken(null);
 
     setNotification({ message: 'logged out successfully', type: 'success' });
-    setTimeout(() => {
-      setNotification(null);
-    }, 5000);
+    setTimeout(() => setNotification(null), 5000);
   };
 
   const handleNewBlog = async (blogObject) => {
@@ -65,9 +61,7 @@ const App = () => {
     const newBlog = await blogService.create(blogObject);
     setBlogs(blogs.concat(newBlog));
     setNotification({ message: `a new blog ${newBlog.title} by ${newBlog.author} added`, type: 'success' });
-    setTimeout(() => {
-      setNotification(null);
-    }, 5000);
+    setTimeout(() => setNotification(null), 5000);
   };
 
   const handleAddLike = async (id) => {
@@ -82,9 +76,26 @@ const App = () => {
       setBlogs(blogs.map(b => b.id !== id ? b : { ...returnedBlog, user: blogToUpdate.user }));
     } catch {
       setNotification({ message: 'error adding like', type: 'error' });
-      setTimeout(() => {
-        setNotification(null);
-      }, 5000);
+      setTimeout(() => setNotification(null), 5000);
+    }
+  };
+
+  const handleRemoveBlog = async (id) => {
+    const blogToRemove = blogs.find(b => b.id === id);
+    const confirmation = window.confirm(`Remove blog ${blogToRemove.title} by ${blogToRemove.author}`);
+    if (!confirmation) return;
+
+    try {
+      await blogService.deleteBlog(id);
+      setBlogs(blogs.filter(b => b.id !== id));
+      setNotification({ 
+        message: `blog ${blogToRemove.title} by ${blogToRemove.author} removed successfully`, 
+        type: 'success' 
+      });
+      setTimeout(() => setNotification(null), 5000);
+    } catch {
+      setNotification({ message: 'only the creator can remove this blog', type: 'error' });
+      setTimeout(() => setNotification(null), 5000);
     }
   };
 
@@ -107,7 +118,13 @@ const App = () => {
             </div>
             
             {blogs.sort((a, b) => b.likes - a.likes).map(blog =>
-              <Blog key={blog.id} blog={blog} handleAddLike={handleAddLike} />
+              <Blog 
+                key={blog.id} 
+                blog={blog} 
+                handleAddLike={handleAddLike} 
+                handleRemoveBlog={handleRemoveBlog}
+                loggedUser={user}
+              />
             )}
           </div>
           <div>
@@ -115,7 +132,6 @@ const App = () => {
               <BlogForm handleNewBlog={handleNewBlog} />
             </Togglable>
           </div>
-
         </div>
       )}
     </>
