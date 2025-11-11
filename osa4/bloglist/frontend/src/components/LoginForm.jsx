@@ -1,22 +1,22 @@
-import { useState } from "react"
-import Notification from "./Notification"
+import { useState } from 'react'
+import Notification from './Notification'
 
 const LoginForm = ({ handleLogin, notification }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+
   const login = (event) => {
-    event.preventDefault();
-    handleLogin(username, password);
-    setUsername('');
-    setPassword('');
-  };
+    event.preventDefault()
+    handleLogin(username, password)
+    setUsername('')
+    setPassword('')
+  }
 
   return (
     <div>
       <h2>log in to application</h2>
       <Notification notification={notification} />
-      
+
       <form onSubmit={login}>
         <div>
           <label>
@@ -41,7 +41,7 @@ const LoginForm = ({ handleLogin, notification }) => {
         <button type="submit">login</button>
       </form>
     </div>
-  );
-};
+  )
+}
 
-export default LoginForm;
+export default LoginForm

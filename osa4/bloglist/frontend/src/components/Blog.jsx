@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState } from 'react'
 
 const Blog = ({ blog, handleAddLike, handleRemoveBlog, loggedUser }) => {
-  const [detailsVisible, setDetailsVisible] = useState(false);
+  const [detailsVisible, setDetailsVisible] = useState(false)
 
-  const toggleVisibility = () => setDetailsVisible(!detailsVisible);
-  const isCreator = () => loggedUser && blog.user.username === loggedUser.username;
+  const toggleVisibility = () => setDetailsVisible(!detailsVisible)
+  const isCreator = () => loggedUser && blog.user.username === loggedUser.username
 
   const blogStyle = {
     paddingTop: 10,
@@ -13,7 +13,7 @@ const Blog = ({ blog, handleAddLike, handleRemoveBlog, loggedUser }) => {
     borderWidth: 1,
     marginBottom: 5
   }
-  
+
   return (
     <div style={blogStyle}>
       <div>
@@ -38,7 +38,7 @@ const Blog = ({ blog, handleAddLike, handleRemoveBlog, loggedUser }) => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Blog;
+export default Blog

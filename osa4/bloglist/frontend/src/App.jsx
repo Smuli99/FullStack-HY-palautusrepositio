@@ -8,96 +8,96 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 
 const App = () => {
-  const [blogs, setBlogs] = useState([]);
-  const [notification, setNotification] = useState(null);
-  const [user, setUser] = useState(null);
+  const [blogs, setBlogs] = useState([])
+  const [notification, setNotification] = useState(null)
+  const [user, setUser] = useState(null)
 
-  const blogFromRef = useRef();
+  const blogFromRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
-    );
-  }, []);
+    )
+  }, [])
 
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser');
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
     if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON);
-      setUser(user);
-      blogService.setToken(user.token);
+      const user = JSON.parse(loggedUserJSON)
+      setUser(user)
+      blogService.setToken(user.token)
     }
-  }, []);
+  }, [])
 
   const handleLogin = async (username, password) => {
     try {
-      const user = await loginService.login({ username, password });
-      
+      const user = await loginService.login({ username, password })
+
       window.localStorage.setItem(
         'loggedBlogAppUser', JSON.stringify(user)
-      );
+      )
 
-      blogService.setToken(user.token);
-  
-      setUser(user);
+      blogService.setToken(user.token)
+
+      setUser(user)
     } catch {
-      setNotification({  message: 'wrong username or password', type: 'error' });
-      setTimeout(() => setNotification(null), 5000);
+      setNotification({  message: 'wrong username or password', type: 'error' })
+      setTimeout(() => setNotification(null), 5000)
     }
-  };
+  }
 
   const handleLogout = () => {
-    window.localStorage.removeItem('loggedBlogAppUser');
-    setUser(null);
-    blogService.setToken(null);
+    window.localStorage.removeItem('loggedBlogAppUser')
+    setUser(null)
+    blogService.setToken(null)
 
-    setNotification({ message: 'logged out successfully', type: 'success' });
-    setTimeout(() => setNotification(null), 5000);
-  };
+    setNotification({ message: 'logged out successfully', type: 'success' })
+    setTimeout(() => setNotification(null), 5000)
+  }
 
   const handleNewBlog = async (blogObject) => {
-    blogFromRef.current.toggleVisibility();
+    blogFromRef.current.toggleVisibility()
 
-    const newBlog = await blogService.create(blogObject);
-    setBlogs(blogs.concat(newBlog));
-    setNotification({ message: `a new blog ${newBlog.title} by ${newBlog.author} added`, type: 'success' });
-    setTimeout(() => setNotification(null), 5000);
-  };
+    const newBlog = await blogService.create(blogObject)
+    setBlogs(blogs.concat(newBlog))
+    setNotification({ message: `a new blog ${newBlog.title} by ${newBlog.author} added`, type: 'success' })
+    setTimeout(() => setNotification(null), 5000)
+  }
 
   const handleAddLike = async (id) => {
     try {
-      const blogToUpdate = blogs.find(b => b.id === id);
+      const blogToUpdate = blogs.find(b => b.id === id)
       const updatedBlog = {
         ...blogToUpdate,
         likes: blogToUpdate.likes + 1
-      };
+      }
 
-      const returnedBlog = await blogService.update(id, updatedBlog);
-      setBlogs(blogs.map(b => b.id !== id ? b : { ...returnedBlog, user: blogToUpdate.user }));
+      const returnedBlog = await blogService.update(id, updatedBlog)
+      setBlogs(blogs.map(b => b.id !== id ? b : { ...returnedBlog, user: blogToUpdate.user }))
     } catch {
-      setNotification({ message: 'error adding like', type: 'error' });
-      setTimeout(() => setNotification(null), 5000);
+      setNotification({ message: 'error adding like', type: 'error' })
+      setTimeout(() => setNotification(null), 5000)
     }
-  };
+  }
 
   const handleRemoveBlog = async (id) => {
-    const blogToRemove = blogs.find(b => b.id === id);
-    const confirmation = window.confirm(`Remove blog ${blogToRemove.title} by ${blogToRemove.author}`);
-    if (!confirmation) return;
+    const blogToRemove = blogs.find(b => b.id === id)
+    const confirmation = window.confirm(`Remove blog ${blogToRemove.title} by ${blogToRemove.author}`)
+    if (!confirmation) return
 
     try {
-      await blogService.deleteBlog(id);
-      setBlogs(blogs.filter(b => b.id !== id));
-      setNotification({ 
-        message: `blog ${blogToRemove.title} by ${blogToRemove.author} removed successfully`, 
-        type: 'success' 
-      });
-      setTimeout(() => setNotification(null), 5000);
+      await blogService.deleteBlog(id)
+      setBlogs(blogs.filter(b => b.id !== id))
+      setNotification({
+        message: `blog ${blogToRemove.title} by ${blogToRemove.author} removed successfully`,
+        type: 'success'
+      })
+      setTimeout(() => setNotification(null), 5000)
     } catch {
-      setNotification({ message: 'only the creator can remove this blog', type: 'error' });
-      setTimeout(() => setNotification(null), 5000);
+      setNotification({ message: 'only the creator can remove this blog', type: 'error' })
+      setTimeout(() => setNotification(null), 5000)
     }
-  };
+  }
 
   return (
     <>
@@ -116,12 +116,12 @@ const App = () => {
               <span>{user.name} logged in</span>
               <button onClick={() => handleLogout()}>logout</button>
             </div>
-            
+
             {blogs.sort((a, b) => b.likes - a.likes).map(blog =>
-              <Blog 
-                key={blog.id} 
-                blog={blog} 
-                handleAddLike={handleAddLike} 
+              <Blog
+                key={blog.id}
+                blog={blog}
+                handleAddLike={handleAddLike}
                 handleRemoveBlog={handleRemoveBlog}
                 loggedUser={user}
               />
@@ -135,7 +135,7 @@ const App = () => {
         </div>
       )}
     </>
-  );
-};
+  )
+}
 
-export default App;
+export default App
