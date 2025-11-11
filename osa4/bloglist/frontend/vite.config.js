@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { globals } from 'vitest';
 
 export default defineConfig({
   plugins: [react()],
@@ -15,14 +14,6 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: './src/setupTests.js',
-    include: ['**/*.test.{js,jsx}'], // files -> include
-    environmentOptions: {
-      jsdom: {
-        globals: {
-          ...globals.vitest,
-        },
-      },
-    },
+    setupFiles: './testSetup.js',
   },
 });
