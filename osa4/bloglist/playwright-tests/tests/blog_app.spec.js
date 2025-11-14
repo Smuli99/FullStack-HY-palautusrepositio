@@ -1,5 +1,5 @@
 const { test, expect, beforeEach, describe } = require('@playwright/test');
-const { loginWith } = require('./helper');
+const { loginWith, createBlog } = require('./helper');
 
 describe('Blog App', () => {
   beforeEach(async ({ page, request }) => {
@@ -13,6 +13,8 @@ describe('Blog App', () => {
     });
 
     await page.goto('http://localhost:5173');
+    // jotta uusi tokeni saadaan aina käyttöön
+    await page.evaluate(() => localStorage.clear());
   });
 
   test('front page can be opended and login form is shown', async ({ page }) => {
@@ -32,6 +34,27 @@ describe('Blog App', () => {
       await loginWith(page, 'hytosama', 'salainen');
       await expect(page.getByText('blogs')).toBeVisible();
       await expect(page.getByText('Samu Hytönen logged in')).toBeVisible();
+    });
+
+    describe('When logged in', () => {
+      beforeEach(async ({ page }) => {
+        await loginWith(page, 'hytosama', 'salainen');
+      });
+
+      test('user can logout', async ({ page }) => {
+        await page.getByRole('button', { name: 'logout' }).click();
+        await expect(page.getByText('logged out successfully')).toBeVisible();
+      });
+
+      test('a new blog can be created', async ({ page }) => {
+        await createBlog(page, {
+            title: 'Added with playwright',
+            author: 'Foo Bar',
+            url: 'https://example.com'
+        });
+
+        await expect(page.getByText('Added with playwright Foo Bar')).toBeVisible();
+      });
     });
   });
 
