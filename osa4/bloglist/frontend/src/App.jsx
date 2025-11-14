@@ -73,7 +73,7 @@ const App = () => {
       };
 
       const returnedBlog = await blogService.update(id, updatedBlog);
-      setBlogs(blogs.map(b => b.id !== id ? b : { ...returnedBlog, user: blogToUpdate.user }));
+      setBlogs(blogs.map(b => b.id !== id ? b : returnedBlog));
     } catch {
       setNotification({ message: 'error adding like', type: 'error' });
       setTimeout(() => setNotification(null), 5000);
