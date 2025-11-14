@@ -31,8 +31,12 @@ blogsRouter.post('/', userExtractor, async (request, response) => {
   });
 
   const savedBlog = await blog.save();
+
   user.blogs = user.blogs.concat(savedBlog.id);
   await user.save();
+
+  // saadaan koko user olio palautuksena
+  await savedBlog.populate('user', { username: 1, name: 1 });
 
   return response.status(201).json(savedBlog);
 });
@@ -57,6 +61,10 @@ blogsRouter.put('/:id', async (request, response) => {
   blogToUpdate.likes = likes;
 
   const updatedBlog = await blogToUpdate.save();
+
+  // saadaan koko user olio palautuksena
+  await updatedBlog.populate('user', { username: 1, name: 1 });
+
   return response.json(updatedBlog);
 });
 
