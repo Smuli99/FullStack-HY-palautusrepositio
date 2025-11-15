@@ -13,7 +13,6 @@ describe('Blog App', () => {
     });
 
     await page.goto('http://localhost:5173');
-    // jotta uusi tokeni saadaan aina käyttöön
     await page.evaluate(() => localStorage.clear());
   });
 
@@ -71,6 +70,14 @@ describe('Blog App', () => {
 
           await page.getByRole('button', { name: 'like' }).click();
           await expect(page.getByText('likes 1')).toBeVisible();
+        });
+
+        test('blog can be removed by the creator', async ({ page }) => {
+          await page.getByRole('button', { name: 'view' }).click();
+          page.once('dialog', dialog => dialog.accept());
+          await page.getByRole('button', { name: 'remove' }).click();
+
+          await expect(page.getByText('Added with playwright Foo Bar')).not.toBeVisible();
         });
       });
     });
