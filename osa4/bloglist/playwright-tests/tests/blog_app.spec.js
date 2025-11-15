@@ -11,6 +11,13 @@ describe('Blog App', () => {
         password: 'salainen',
       },
     });
+    await request.post('http://localhost:3003/api/users', {
+      data: {
+        name: 'Foo Bar',
+        username: 'root',
+        password: 'salainen',
+      },
+    });
 
     await page.goto('http://localhost:5173');
     await page.evaluate(() => localStorage.clear());
@@ -79,6 +86,16 @@ describe('Blog App', () => {
 
           await expect(page.getByText('Added with playwright Foo Bar')).not.toBeVisible();
         });
+
+        test('remove button is visible only to the blog creator', async ({ page }) => {
+          await page.getByRole('button', { name: 'view' }).click();
+          await expect(page.getByRole('button', { name: 'remove' })).toBeVisible();
+          await page.getByRole('button', { name: 'logout' }).click();
+
+          await loginWith(page, 'root', 'salainen');
+          await page.getByRole('button', { name: 'view' }).click();
+          await expect(page.getByRole('button', { name: 'remove' })).not.toBeVisible();
+        })
       });
     });
   });
