@@ -1,5 +1,5 @@
 const { test, expect, beforeEach, describe } = require('@playwright/test');
-const { loginWith, createBlog } = require('./helper');
+const { loginWith, createBlog, likeSpecificBlog, parseIntFromLikes } = require('./helper');
 
 describe('Blog App', () => {
   beforeEach(async ({ page, request }) => {
@@ -96,6 +96,54 @@ describe('Blog App', () => {
           await page.getByRole('button', { name: 'view' }).click();
           await expect(page.getByRole('button', { name: 'remove' })).not.toBeVisible();
         })
+      });
+
+      describe('and several blogs exists', () => {
+        beforeEach(async ({ page }) => {
+          await createBlog(page, {
+            title: 'First Test Blog',
+            author: 'Foo Bar',
+            url: 'https://example.com',
+          });
+
+          await createBlog(page, {
+            title: 'Second Test Blog',
+            author: 'Bar Foo',
+            url: 'https://spotify.com',
+          });
+
+          await createBlog(page, {
+            title: 'Third Test Blog',
+            author: 'Foo Bar Foo',
+            url: 'https://github.com',
+          });
+        });
+
+        test('blogs are listed from most likes to least likes', async ({ page }) => {
+          await likeSpecificBlog(page, 'Third Test Blog');
+          await likeSpecificBlog(page, 'Third Test Blog');
+          await likeSpecificBlog(page, 'Second Test Blog');
+
+          const blogs = page.locator('.blog');
+          await expect(blogs).toHaveCount(3);
+
+          const count = await blogs.count();
+          const likeValues = [];
+
+          for (let i = 0; i < count; i++) {
+            const blog = blogs.nth(i);
+            await blog.getByRole('button', { name: 'view' }).click();
+
+            const likesText = await blog.getByText(/likes\s+\d+/).textContent();
+            const intLikes = parseIntFromLikes(likesText);
+            
+            likeValues.push(intLikes);
+            await blog.getByRole('button', { name: 'hide' }).click();
+          }
+
+          const sortedLikes = [...likeValues].sort((a, b) => b - a);
+          expect(likeValues).toEqual(sortedLikes);
+        });
       });
     });
   });
